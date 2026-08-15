@@ -1,0 +1,20 @@
+// Subscription Portal — Frontend SCSS
+
+.o_portal_my_doc_table {
+    tr:hover {
+        background-color: rgba(135, 90, 123, 0.05);
+        cursor: pointer;
+    }
+}
+
+.subscription-status-badge {
+    font-size: 0.85rem;
+    padding: 0.4em 0.8em;
+}
+
+.subscription-feature-list {
+    li {
+        padding: 4px 0;
+        font-size: 0.95rem;
+    }
+}

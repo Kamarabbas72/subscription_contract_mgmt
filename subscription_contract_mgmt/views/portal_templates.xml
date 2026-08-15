@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ── Portal Home: Add contract count to sidebar ── -->
+    <template id="portal_my_home_subscription" name="Portal My Home: Subscription Contracts"
+              inherit_id="portal.portal_my_home" customize_show="True" priority="30">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Subscription Contracts</t>
+                <t t-set="url">/my/contracts</t>
+                <t t-set="count" t-value="contract_count"/>
+                <t t-set="icon">fa-file-contract</t>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- ── Contract List Page ── -->
+    <template id="portal_my_contracts" name="My Subscription Contracts">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Subscription Contracts</t>
+            </t>
+
+            <t t-if="not contracts">
+                <div class="alert alert-warning mt8">
+                    No subscription contracts found.
+                </div>
+            </t>
+
+            <t t-if="contracts">
+                <!-- Filter bar -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="btn-group" role="group">
+                            <t t-foreach="searchbar_filters" t-as="opt">
+                                <a t-attf-href="/my/contracts?filterby=#{opt}&amp;sortby=#{sortby}"
+                                   t-attf-class="btn btn-sm #{'btn-primary' if filterby == opt else 'btn-outline-secondary'}">
+                                    <t t-esc="searchbar_filters[opt]['label']"/>
+                                </a>
+                            </t>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <span class="text-muted">Sort by: </span>
+                        <t t-foreach="searchbar_sortings" t-as="opt">
+                            <a t-attf-href="/my/contracts?sortby=#{opt}&amp;filterby=#{filterby}"
+                               t-attf-class="badge #{'text-bg-primary' if sortby == opt else 'text-bg-secondary'} me-1">
+                                <t t-esc="searchbar_sortings[opt]['label']"/>
+                            </a>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Contracts table -->
+                <div class="table-responsive">
+                    <table class="table table-hover o_portal_my_doc_table">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Plan</th>
+                                <th>Amount</th>
+                                <th>Renewal Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="contracts" t-as="contract">
+                                <tr>
+                                    <td>
+                                        <a t-attf-href="/my/contracts/#{contract.id}">
+                                            <t t-esc="contract.reference"/>
+                                        </a>
+                                    </td>
+                                    <td><t t-esc="contract.plan_id.name"/></td>
+                                    <td>
+                                        <t t-esc="contract.final_amount"
+                                           t-options='{"widget": "monetary", "display_currency": contract.currency_id}'/>
+                                    </td>
+                                    <td><t t-esc="contract.date_end"/></td>
+                                    <td>
+                                        <span t-attf-class="badge #{
+                                            'text-bg-success' if contract.state == 'active' else
+                                            'text-bg-warning' if contract.state == 'pending_renewal' else
+                                            'text-bg-danger' if contract.state == 'suspended' else
+                                            'text-bg-secondary'
+                                        }">
+                                            <t t-esc="dict(contract._fields['state'].selection).get(contract.state)"/>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+                <div t-if="pager" class="o_portal_pager text-center">
+                    <t t-call="web.pager"/>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- ── Contract Detail Page ── -->
+    <template id="portal_contract_detail" name="Contract Detail">
+        <t t-call="portal.portal_layout">
+            <t t-set="o_portal_fullwidth_alert" groups="base.group_public">
+                <t t-call="portal.portal_back_in_edit_mode">
+                    <t t-set="backend_url" t-value="'/odoo/subscriptions/%s' % contract.id"/>
+                </t>
+            </t>
+
+            <div class="row mt-3">
+                <!-- Main contract card -->
+                <div class="col-lg-8">
+                    <div class="card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fa fa-file-text-o me-2"/>
+                                <t t-esc="contract.reference"/> — <t t-esc="contract.name"/>
+                            </h5>
+                            <span t-attf-class="badge #{
+                                'text-bg-success' if contract.state == 'active' else
+                                'text-bg-warning' if contract.state == 'pending_renewal' else
+                                'text-bg-danger' if contract.state == 'suspended' else
+                                'text-bg-secondary'
+                            } fs-6">
+                                <t t-esc="dict(contract._fields['state'].selection).get(contract.state)"/>
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <!-- Alert: suspension -->
+                            <div t-if="contract.state == 'suspended'" class="alert alert-danger">
+                                <i class="fa fa-exclamation-triangle"/> Your subscription is suspended.
+                                Please clear outstanding invoices or contact your account manager.
+                            </div>
+                            <!-- Alert: pending renewal -->
+                            <div t-if="contract.state == 'pending_renewal'" class="alert alert-warning">
+                                <i class="fa fa-clock-o"/> Your subscription is pending renewal.
+                                Please use the button below or contact your account manager.
+                            </div>
+                            <!-- Alert: renewal requested -->
+                            <div t-if="contract.renewal_requested" class="alert alert-info">
+                                <i class="fa fa-check"/> Your renewal request has been received. We will process it shortly.
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted">Plan Details</h6>
+                                    <dl class="row">
+                                        <dt class="col-sm-5">Plan</dt>
+                                        <dd class="col-sm-7"><t t-esc="contract.plan_id.name"/></dd>
+                                        <dt class="col-sm-5">Billing Cycle</dt>
+                                        <dd class="col-sm-7"><t t-esc="contract.billing_cycle"/></dd>
+                                        <dt class="col-sm-5">Amount</dt>
+                                        <dd class="col-sm-7 fw-bold">
+                                            <t t-esc="contract.final_amount"
+                                               t-options='{"widget": "monetary", "display_currency": contract.currency_id}'/>
+                                        </dd>
+                                    </dl>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted">Important Dates</h6>
+                                    <dl class="row">
+                                        <dt class="col-sm-5">Start Date</dt>
+                                        <dd class="col-sm-7"><t t-esc="contract.date_start"/></dd>
+                                        <dt class="col-sm-5">Renewal Date</dt>
+                                        <dd class="col-sm-7"><t t-esc="contract.date_end"/></dd>
+                                        <dt class="col-sm-5">Next Invoice</dt>
+                                        <dd class="col-sm-7"><t t-esc="contract.date_next_invoice"/></dd>
+                                    </dl>
+                                </div>
+                            </div>
+
+                            <!-- Features -->
+                            <t t-if="contract.plan_id.feature_ids">
+                                <h6 class="text-muted mt-3">Included Features</h6>
+                                <ul class="list-unstyled row">
+                                    <t t-foreach="contract.plan_id.feature_ids" t-as="feature">
+                                        <li class="col-md-6 mb-1">
+                                            <i t-attf-class="fa #{feature.icon} me-2 text-success"/>
+                                            <t t-esc="feature.name"/>
+                                        </li>
+                                    </t>
+                                </ul>
+                            </t>
+                        </div>
+                        <div class="card-footer">
+                            <!-- Renewal request button -->
+                            <t t-if="contract.state in ('active', 'pending_renewal') and not contract.renewal_requested">
+                                <form t-attf-action="/my/contracts/#{contract.id}/request-renewal"
+                                      method="POST">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-refresh me-1"/>
+                                        Request Renewal
+                                    </button>
+                                </form>
+                            </t>
+                            <a t-attf-href="/my/contracts/#{contract.id}/invoices"
+                               class="btn btn-outline-secondary ms-2">
+                                <i class="fa fa-file-text-o me-1"/>
+                                View All Invoices
+                            </a>
+                            <a href="/my/contracts" class="btn btn-link ms-2">← Back to Contracts</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar: recent invoices -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fa fa-file-text-o me-1"/> Recent Invoices</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <t t-if="not invoices">
+                                <p class="text-muted p-3 mb-0">No invoices yet.</p>
+                            </t>
+                            <ul class="list-group list-group-flush">
+                                <t t-foreach="invoices" t-as="inv">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold small"><t t-esc="inv.name"/></div>
+                                            <div class="text-muted x-small"><t t-esc="inv.invoice_date"/></div>
+                                        </div>
+                                        <span t-attf-class="badge #{
+                                            'text-bg-success' if inv.payment_state == 'paid' else 'text-bg-warning'
+                                        }">
+                                            <t t-esc="inv.payment_state"/>
+                                        </span>
+                                    </li>
+                                </t>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ── All Invoices Page ── -->
+    <template id="portal_contract_invoices" name="Contract Invoices">
+        <t t-call="portal.portal_layout">
+            <div class="mt-3">
+                <h4><t t-esc="contract.reference"/> — Invoices</h4>
+                <a t-attf-href="/my/contracts/#{contract.id}" class="btn btn-link mb-3">← Back to Contract</a>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Invoice</th>
+                                <th>Date</th>
+                                <th>Due Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-if="not invoices">
+                                <tr><td colspan="5" class="text-muted text-center">No invoices found.</td></tr>
+                            </t>
+                            <t t-foreach="invoices" t-as="inv">
+                                <tr>
+                                    <td><t t-esc="inv.name"/></td>
+                                    <td><t t-esc="inv.invoice_date"/></td>
+                                    <td><t t-esc="inv.invoice_date_due"/></td>
+                                    <td>
+                                        <t t-esc="inv.amount_total"
+                                           t-options='{"widget": "monetary", "display_currency": inv.currency_id}'/>
+                                    </td>
+                                    <td>
+                                        <span t-attf-class="badge #{
+                                            'text-bg-success' if inv.payment_state == 'paid' else
+                                            'text-bg-warning' if inv.payment_state == 'partial' else
+                                            'text-bg-danger'
+                                        }">
+                                            <t t-esc="inv.payment_state"/>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

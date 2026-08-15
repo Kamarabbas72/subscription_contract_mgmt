@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_subscription_inherit" model="ir.ui.view">
+        <field name="name">res.partner.subscription.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_contracts" type="object"
+                        class="oe_stat_button" icon="fa-file-text-o"
+                        invisible="contract_count == 0">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="active_contract_count"/>
+                            /
+                            <field name="contract_count"/>
+                        </span>
+                        <span class="o_stat_text">Subscriptions</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

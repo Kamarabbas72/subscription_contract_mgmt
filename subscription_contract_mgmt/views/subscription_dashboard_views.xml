@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Graph: Contracts by State -->
+    <record id="view_subscription_contract_graph" model="ir.ui.view">
+        <field name="name">subscription.contract.graph</field>
+        <field name="model">subscription.contract</field>
+        <field name="arch" type="xml">
+            <graph string="Contract Analytics" type="bar">
+                <field name="plan_id" type="row"/>
+                <field name="final_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot: Revenue breakdown -->
+    <record id="view_subscription_contract_pivot" model="ir.ui.view">
+        <field name="name">subscription.contract.pivot</field>
+        <field name="model">subscription.contract</field>
+        <field name="arch" type="xml">
+            <pivot string="Subscription Revenue">
+                <field name="plan_id" type="row"/>
+                <field name="billing_cycle" type="col"/>
+                <field name="final_amount" type="measure"/>
+                <field name="invoice_count" type="measure"/>
+                <field name="renewal_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Dashboard action combining all views -->
+    <record id="action_subscription_dashboard" model="ir.actions.act_window">
+        <field name="name">Subscription Dashboard</field>
+        <field name="res_model">subscription.contract</field>
+        <field name="view_mode">kanban,list,graph,pivot,form</field>
+        <field name="search_view_id" ref="view_subscription_contract_search"/>
+        <field name="context">{
+            'search_default_active': 1,
+            'search_default_pending': 0,
+        }</field>
+    </record>
+</odoo>

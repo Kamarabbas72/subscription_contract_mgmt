@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ── Features ── -->
+    <record id="feature_api_access" model="subscription.feature">
+        <field name="name">API Access</field>
+        <field name="icon">fa-plug</field>
+    </record>
+    <record id="feature_priority_support" model="subscription.feature">
+        <field name="name">Priority Support (SLA 4h)</field>
+        <field name="icon">fa-headphones</field>
+    </record>
+    <record id="feature_sso" model="subscription.feature">
+        <field name="name">Single Sign-On (SSO)</field>
+        <field name="icon">fa-key</field>
+    </record>
+    <record id="feature_audit_log" model="subscription.feature">
+        <field name="name">Audit Log &amp; Compliance Reports</field>
+        <field name="icon">fa-file-text-o</field>
+    </record>
+    <record id="feature_custom_domain" model="subscription.feature">
+        <field name="name">Custom Domain</field>
+        <field name="icon">fa-globe</field>
+    </record>
+    <record id="feature_dedicated_manager" model="subscription.feature">
+        <field name="name">Dedicated Account Manager</field>
+        <field name="icon">fa-user-tie</field>
+    </record>
+
+    <!-- ── Invoicing Products ── -->
+    <record id="product_starter" model="product.product">
+        <field name="name">Subscription — Starter Plan</field>
+        <field name="type">service</field>
+        <field name="invoice_policy">order</field>
+        <field name="list_price">99.00</field>
+    </record>
+    <record id="product_pro" model="product.product">
+        <field name="name">Subscription — Professional Plan</field>
+        <field name="type">service</field>
+        <field name="invoice_policy">order</field>
+        <field name="list_price">299.00</field>
+    </record>
+    <record id="product_enterprise" model="product.product">
+        <field name="name">Subscription — Enterprise Plan</field>
+        <field name="type">service</field>
+        <field name="invoice_policy">order</field>
+        <field name="list_price">999.00</field>
+    </record>
+
+    <!-- ── Plans ── -->
+    <record id="plan_starter" model="subscription.plan">
+        <field name="name">Starter</field>
+        <field name="code">STARTER_MONTHLY</field>
+        <field name="price_monthly">99.00</field>
+        <field name="billing_cycle">monthly</field>
+        <field name="trial_days">14</field>
+        <field name="grace_period_days">7</field>
+        <field name="max_users">5</field>
+        <field name="max_storage_gb">10</field>
+        <field name="product_id" ref="product_starter"/>
+    </record>
+
+    <record id="plan_professional" model="subscription.plan">
+        <field name="name">Professional</field>
+        <field name="code">PRO_MONTHLY</field>
+        <field name="price_monthly">299.00</field>
+        <field name="billing_cycle">monthly</field>
+        <field name="trial_days">7</field>
+        <field name="grace_period_days">10</field>
+        <field name="max_users">25</field>
+        <field name="max_storage_gb">100</field>
+        <field name="product_id" ref="product_pro"/>
+        <field name="feature_ids" eval="[
+            (4, ref('feature_api_access')),
+            (4, ref('feature_priority_support')),
+            (4, ref('feature_custom_domain')),
+        ]"/>
+    </record>
+
+    <record id="plan_enterprise" model="subscription.plan">
+        <field name="name">Enterprise</field>
+        <field name="code">ENT_ANNUAL</field>
+        <field name="price_monthly">999.00</field>
+        <field name="billing_cycle">annual</field>
+        <field name="trial_days">0</field>
+        <field name="grace_period_days">15</field>
+        <field name="max_users">0</field>
+        <field name="max_storage_gb">0</field>
+        <field name="product_id" ref="product_enterprise"/>
+        <field name="feature_ids" eval="[
+            (4, ref('feature_api_access')),
+            (4, ref('feature_priority_support')),
+            (4, ref('feature_sso')),
+            (4, ref('feature_audit_log')),
+            (4, ref('feature_custom_domain')),
+            (4, ref('feature_dedicated_manager')),
+        ]"/>
+    </record>
+
+    <!-- ── Demo Contracts ── -->
+    <record id="contract_acme_active" model="subscription.contract">
+        <field name="name">ACME Corp — Professional Monthly</field>
+        <field name="partner_id" ref="base.res_partner_1"/>
+        <field name="plan_id" ref="plan_professional"/>
+        <field name="billing_cycle">monthly</field>
+        <field name="state">active</field>
+        <field name="date_start">2026-05-15</field>
+        <field name="date_end">2026-09-15</field>
+        <field name="date_next_invoice">2026-09-15</field>
+        <field name="renewal_count">3</field>
+    </record>
+
+    <record id="contract_demo_pending" model="subscription.contract">
+        <field name="name">Azure Interior — Starter Monthly</field>
+        <field name="partner_id" ref="base.res_partner_2"/>
+        <field name="plan_id" ref="plan_starter"/>
+        <field name="billing_cycle">monthly</field>
+        <field name="state">pending_renewal</field>
+        <field name="date_start">2026-07-15</field>
+        <field name="date_end">2026-08-20</field>
+        <field name="renewal_count">1</field>
+    </record>
+
+    <record id="contract_demo_enterprise" model="subscription.contract">
+        <field name="name">Deco Addict — Enterprise Annual</field>
+        <field name="partner_id" ref="base.res_partner_3"/>
+        <field name="plan_id" ref="plan_enterprise"/>
+        <field name="billing_cycle">annual</field>
+        <field name="state">active</field>
+        <field name="date_start">2026-02-15</field>
+        <field name="date_end">2027-02-15</field>
+        <field name="date_next_invoice">2027-02-15</field>
+        <field name="discount">10.0</field>
+        <field name="renewal_count">0</field>
+    </record>
+</odoo>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_subscription_contract_list" model="ir.ui.view">
+        <field name="name">subscription.contract.list</field>
+        <field name="model">subscription.contract</field>
+        <field name="arch" type="xml">
+            <tree string="Contracts"
+                  decoration-danger="state == 'suspended'"
+                  decoration-warning="state == 'pending_renewal'"
+                  decoration-muted="state == 'cancelled'"
+                  decoration-success="state == 'active'">
+                <field name="reference" optional="show"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="plan_id"/>
+                <field name="billing_cycle" optional="show"/>
+                <field name="final_amount" optional="show"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="date_end" optional="show"/>
+                <field name="days_until_renewal" string="Days Left" optional="show"/>
+                <field name="user_id" optional="show" widget="many2one_avatar_user"/>
+                <field name="invoice_count" optional="show" string="Invoices"/>
+                <field name="renewal_count" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-warning="state == 'pending_renewal'"
+                       decoration-danger="state == 'suspended'"/>
+                <field name="is_overdue" column_invisible="True"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_subscription_contract_form" model="ir.ui.view">
+        <field name="name">subscription.contract.form</field>
+        <field name="model">subscription.contract</field>
+        <field name="arch" type="xml">
+            <form string="Subscription Contract">
+                <header>
+                    <button name="action_activate" type="object"
+                            string="Activate" class="btn-primary"
+                            invisible="state != 'draft'"
+                            confirm="This will activate the contract. Continue?"/>
+                    <button name="action_set_pending_renewal" type="object"
+                            string="Set Pending Renewal"
+                            invisible="state != 'active'"/>
+                    <button name="action_renew" type="object"
+                            string="Renew Contract" class="btn-primary"
+                            invisible="state not in ('pending_renewal', 'suspended')"
+                            confirm="This will renew the contract and generate a new invoice."/>
+                    <button name="action_suspend" type="object"
+                            string="Suspend"
+                            invisible="state not in ('active', 'pending_renewal')"
+                            class="btn-warning"/>
+                    <button name="action_cancel" type="object"
+                            string="Cancel Contract"
+                            invisible="state == 'cancelled'"
+                            class="btn-danger"
+                            confirm="Are you sure you want to cancel this contract?"/>
+                    <button name="action_reset_to_draft" type="object"
+                            string="Reset to Draft"
+                            invisible="state != 'cancelled'"/>
+                    <button name="action_generate_invoice_now" type="object"
+                            string="Generate Invoice Now"
+                            invisible="state not in ('active', 'pending_renewal')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,pending_renewal,suspended,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_invoices" type="object"
+                                class="oe_stat_button" icon="fa-pencil-square-o">
+                            <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                        </button>
+                    </div>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not renewal_requested">
+                        <i class="fa fa-bell"/> Client has requested renewal via the portal.
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="True"/></h1>
+                        <h2><field name="name" placeholder="Contract Name"/></h2>
+                    </div>
+                    <group>
+                        <group string="Client">
+                            <field name="partner_id" readonly="state != 'draft'"/>
+                            <field name="commercial_partner_id" readonly="True"/>
+                            <field name="user_id" widget="many2one_avatar_user"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Plan">
+                            <field name="plan_id" readonly="state != 'draft'"/>
+                            <field name="billing_cycle" readonly="state != 'draft'"/>
+                            <field name="recurring_amount"/>
+                            <field name="discount"/>
+                            <field name="final_amount"/>
+                            <field name="currency_id" invisible="True"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Dates">
+                            <field name="date_start" readonly="state != 'draft'"/>
+                            <field name="date_end"/>
+                            <field name="date_next_invoice"/>
+                            <field name="days_until_renewal"
+                                   invisible="state not in ('active', 'pending_renewal')"/>
+                        </group>
+                        <group string="Lifecycle">
+                            <field name="date_suspended" readonly="True"
+                                   invisible="not date_suspended"/>
+                            <field name="date_cancelled" readonly="True"
+                                   invisible="not date_cancelled"/>
+                            <field name="renewal_requested"/>
+                            <field name="is_overdue"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Cancellation" invisible="state != 'cancelled'">
+                            <field name="cancellation_reason"
+                                   placeholder="Reason for cancellation..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_subscription_contract_kanban" model="ir.ui.view">
+        <field name="name">subscription.contract.kanban</field>
+        <field name="model">subscription.contract</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" group_create="false">
+                <field name="state"/>
+                <field name="partner_id"/>
+                <field name="plan_id"/>
+                <field name="final_amount"/>
+                <field name="currency_id"/>
+                <field name="date_end"/>
+                <field name="days_until_renewal"/>
+                <field name="is_overdue"/>
+                <field name="renewal_requested"/>
+                <field name="user_id"/>
+                <templates>
+                    <t t-name="card">
+                        <field name="reference" class="fw-bold"/>
+                        <field name="partner_id" class="text-muted"/>
+                        <field name="plan_id"/>
+                        <div class="d-flex justify-content-between mt-2">
+                            <field name="final_amount" widget="monetary"/>
+                            <field name="state" widget="badge"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_subscription_contract_search" model="ir.ui.view">
+        <field name="name">subscription.contract.search</field>
+        <field name="model">subscription.contract</field>
+        <field name="arch" type="xml">
+            <search string="Search Contracts">
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="plan_id"/>
+                <field name="user_id"/>
+                <separator/>
+                <filter string="Active" name="active" domain="[('state','=','active')]"/>
+                <filter string="Pending Renewal" name="pending" domain="[('state','=','pending_renewal')]"/>
+                <filter string="Suspended" name="suspended" domain="[('state','=','suspended')]"/>
+                <filter string="Cancelled" name="cancelled" domain="[('state','=','cancelled')]"/>
+                <separator/>
+                <filter string="Overdue" name="overdue" domain="[('is_overdue','=',True)]"/>
+                <filter string="My Contracts" name="my_contracts" domain="[('user_id','=',uid)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="State" name="group_state" context="{'group_by':'state'}"/>
+                    <filter string="Plan" name="group_plan" context="{'group_by':'plan_id'}"/>
+                    <filter string="Client" name="group_partner" context="{'group_by':'partner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_subscription_contract" model="ir.actions.act_window">
+        <field name="name">Contracts</field>
+        <field name="res_model">subscription.contract</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="search_view_id" ref="view_subscription_contract_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+</odoo>

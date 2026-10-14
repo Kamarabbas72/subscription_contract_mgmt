@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Renewal Reminder -->
+    <record id="email_template_renewal_reminder" model="mail.template">
+        <field name="name">Subscription: Renewal Reminder</field>
+        <field name="model_id" ref="model_subscription_contract"/>
+        <field name="subject">Your subscription {{ object.reference }} is up for renewal</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="email_from">{{ (object.user_id.email or user.email) }}</field>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+    <h2 style="color: #875a7b;">Subscription Renewal Reminder</h2>
+    <p>Dear {{ object.partner_id.name }},</p>
+    <p>
+        Your subscription <strong>{{ object.reference }}</strong> ({{ object.plan_id.name }}) 
+        is due for renewal on <strong>{{ object.date_end }}</strong>.
+    </p>
+    <table style="width:100%; border-collapse:collapse; margin: 16px 0;">
+        <tr style="background:#f5f5f5;">
+            <td style="padding:8px; border:1px solid #ddd;"><strong>Contract</strong></td>
+            <td style="padding:8px; border:1px solid #ddd;">{{ object.reference }}</td>
+        </tr>
+        <tr>
+            <td style="padding:8px; border:1px solid #ddd;"><strong>Plan</strong></td>
+            <td style="padding:8px; border:1px solid #ddd;">{{ object.plan_id.name }}</td>
+        </tr>
+        <tr style="background:#f5f5f5;">
+            <td style="padding:8px; border:1px solid #ddd;"><strong>Amount</strong></td>
+            <td style="padding:8px; border:1px solid #ddd;">{{ object.final_amount }} {{ object.currency_id.symbol }}</td>
+        </tr>
+        <tr>
+            <td style="padding:8px; border:1px solid #ddd;"><strong>Renewal Date</strong></td>
+            <td style="padding:8px; border:1px solid #ddd;">{{ object.date_end }}</td>
+        </tr>
+    </table>
+    <p>
+        <a href="{{ ctx.get('base_url', '') }}/my/contracts/{{ object.id }}"
+           style="background:#875a7b; color:#fff; padding:10px 20px; text-decoration:none; border-radius:4px;">
+            View My Contract
+        </a>
+    </p>
+    <p>If you have any questions, please contact us at {{ object.user_id.email }}.</p>
+    <p>Best regards,<br/>{{ object.company_id.name }}</p>
+</div>
+        ]]></field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <!-- Suspension Notice -->
+    <record id="email_template_suspension_notice" model="mail.template">
+        <field name="name">Subscription: Suspension Notice</field>
+        <field name="model_id" ref="model_subscription_contract"/>
+        <field name="subject">Important: Your subscription {{ object.reference }} has been suspended</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="email_from">{{ (object.user_id.email or user.email) }}</field>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+    <h2 style="color: #d9534f;">Subscription Suspended</h2>
+    <p>Dear {{ object.partner_id.name }},</p>
+    <p>
+        Your subscription <strong>{{ object.reference }}</strong> has been suspended 
+        due to an outstanding invoice beyond the grace period.
+    </p>
+    <p>
+        To reactivate your subscription, please clear your outstanding balance and 
+        contact your account manager at <a href="mailto:{{ object.user_id.email }}">{{ object.user_id.email }}</a>.
+    </p>
+    <p>
+        <a href="{{ ctx.get('base_url', '') }}/my/contracts/{{ object.id }}"
+           style="background:#d9534f; color:#fff; padding:10px 20px; text-decoration:none; border-radius:4px;">
+            View My Contract
+        </a>
+    </p>
+    <p>Best regards,<br/>{{ object.company_id.name }}</p>
+</div>
+        ]]></field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <!-- Welcome / Activation -->
+    <record id="email_template_contract_activated" model="mail.template">
+        <field name="name">Subscription: Contract Activated</field>
+        <field name="model_id" ref="model_subscription_contract"/>
+        <field name="subject">Welcome! Your subscription {{ object.reference }} is now active</field>
+        <field name="email_to">{{ object.partner_id.email }}</field>
+        <field name="email_from">{{ (object.user_id.email or user.email) }}</field>
+        <field name="body_html"><![CDATA[
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+    <h2 style="color: #5cb85c;">Subscription Activated</h2>
+    <p>Dear {{ object.partner_id.name }},</p>
+    <p>
+        Your subscription <strong>{{ object.reference }}</strong> is now <strong>active</strong>.
+        You can manage your contract, view invoices, and request renewals anytime from your client portal.
+    </p>
+    <p>
+        <a href="{{ ctx.get('base_url', '') }}/my/contracts/{{ object.id }}"
+           style="background:#5cb85c; color:#fff; padding:10px 20px; text-decoration:none; border-radius:4px;">
+            Access My Portal
+        </a>
+    </p>
+    <p>Best regards,<br/>{{ object.company_id.name }}</p>
+</div>
+        ]]></field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <!-- Sequence for contract reference -->
+    <record id="seq_subscription_contract" model="ir.sequence">
+        <field name="name">Subscription Contract Reference</field>
+        <field name="code">subscription.contract</field>
+        <field name="prefix">SUB/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

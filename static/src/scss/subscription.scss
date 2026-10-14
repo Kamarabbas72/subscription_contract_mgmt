@@ -1,0 +1,28 @@
+// Subscription Contract Management — Backend SCSS
+
+.o_subscription_dashboard {
+    .o_kanban_record {
+        transition: box-shadow 0.2s ease;
+
+        &:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+    }
+}
+
+// State color overrides for Kanban column headers
+.o_column_title {
+    .badge {
+        font-size: 0.75rem;
+    }
+}
+
+// Overdue badge pulse animation
+@keyframes overdue-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.badge-overdue {
+    animation: overdue-pulse 2s infinite;
+}

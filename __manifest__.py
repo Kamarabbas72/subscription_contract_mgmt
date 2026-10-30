@@ -2,6 +2,8 @@
 {
     'name': 'Subscription & Contract Lifecycle Management',
     'version': '17.0.1.0.0',
+    'price': 149.99,
+    'currency': 'EUR',
     'category': 'Sales/Subscriptions',
     'summary': 'B2B subscription contracts with portal self-service, automated renewals, and lifecycle management',
     'description': """
